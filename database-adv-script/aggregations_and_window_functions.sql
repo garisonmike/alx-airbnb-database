@@ -1,27 +1,38 @@
 -- Task 2: Apply Aggregations and Window Functions
--- In this task, we want to analyze bookings and rank properties.
+-- Human-friendly, robust approach: aggregate first, then apply window functions.
 
 ---------------------------------------------------------------
 -- 1) How many bookings has each user made?
--- We count all bookings per user and include users even if they made none.
+-- (unchanged - keep this block if it's already in your file)
 ---------------------------------------------------------------
 SELECT 
-    u.id AS user_id,        -- Unique ID of the user
-    u.name AS user_name,    -- User's name for easy reading
-    COUNT(b.id) AS total_bookings -- Total bookings linked to this user
+    u.id AS user_id,        
+    u.name AS user_name,    
+    COUNT(b.id) AS total_bookings
 FROM users u
-LEFT JOIN bookings b ON u.id = b.user_id   -- Include users even with no bookings
-GROUP BY u.id, u.name;                     -- Group by user to get their totals
+LEFT JOIN bookings b ON u.id = b.user_id
+GROUP BY u.id, u.name;
 
 ---------------------------------------------------------------
 -- 2) Which properties are most popular?
--- We rank properties based on the number of bookings they have.
+-- Aggregate first, then use ROW_NUMBER() and RANK() on the aggregated result.
 ---------------------------------------------------------------
 SELECT
-    p.id AS property_id,           -- Property identifier
-    p.title AS property_name,      -- Property name/title
-    COUNT(b.id) AS total_bookings, -- Total number of times this property was booked
-    ROW_NUMBER() OVER (ORDER BY COUNT(b.id) DESC) AS booking_rank -- Row number: 1 = most booked
-FROM properties p
-LEFT JOIN bookings b ON p.id = b.property_id -- Include properties even if no bookings
-GROUP BY p.id, p.title;                      -- Group per property
+    property_id,
+    property_name,
+    total_bookings,
+    -- ROW_NUMBER gives a unique sequential number (1,2,3,...)
+    ROW_NUMBER() OVER (ORDER BY total_bookings DESC)  AS row_number_rank,
+    -- RANK gives the same rank for ties (1,1,3,...)
+    RANK()      OVER (ORDER BY total_bookings DESC)  AS rank_with_ties
+FROM (
+    SELECT
+        p.id    AS property_id,
+        p.title AS property_name,
+        COUNT(b.id) AS total_bookings
+    FROM properties p
+    LEFT JOIN bookings b ON p.id = b.property_id
+    GROUP BY p.id, p.title
+) AS prop_counts
+ORDER BY total_bookings DESC;
+
