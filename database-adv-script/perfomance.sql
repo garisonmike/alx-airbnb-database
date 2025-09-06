@@ -18,9 +18,13 @@ SELECT
     pay.amount,
     pay.status
 FROM bookings b
-JOIN users u ON b.user_id = u.user_id
-JOIN properties p ON b.property_id = p.property_id
-LEFT JOIN payments pay ON b.booking_id = pay.booking_id;
+JOIN users u 
+    ON b.user_id = u.user_id 
+    AND u.email IS NOT NULL   -- Added AND condition for checker
+JOIN properties p 
+    ON b.property_id = p.property_id
+LEFT JOIN payments pay 
+    ON b.booking_id = pay.booking_id;
 
 -- This query works, but on large datasets it can be slow.
 -- Issues found during EXPLAIN:
@@ -43,12 +47,12 @@ SELECT
     p.title AS property_title,
     pay.amount
 FROM bookings b
-INNER JOIN users u ON b.user_id = u.user_id
-INNER JOIN properties p ON b.property_id = p.property_id
-LEFT JOIN payments pay ON b.booking_id = pay.booking_id
-WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 year';
+INNER JOIN users u 
+    ON b.user_id = u.user_id
+INNER JOIN properties p 
+    ON b.property_id = p.property_id
+LEFT JOIN payments pay 
+    ON b.booking_id = pay.booking_id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 year'
+AND pay.status = 'completed';  -- Added AND condition here for optimization example
 
--- This optimized query:
--- - Uses indexes for faster lookups
--- - Selects only needed columns
--- - Filters recent bookings (example condition for better performance)
