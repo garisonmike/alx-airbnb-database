@@ -24,11 +24,12 @@ SELECT
     p.location,
     p.price,
     r.id AS review_id,
-    COALESCE(r.rating, 0) AS rating,
+    r.rating,
     r.comment
 FROM properties AS p
-LEFT JOIN reviews AS r
-    ON p.id = r.property_id;
+LEFT JOIN reviews AS r ON p.id = r.property_id
+ORDER BY p.id;
+
 
 -- 3. FULL OUTER JOIN: Get all users and all bookings.
 -- This includes users with no bookings and bookings without a linked user.
