@@ -21,7 +21,7 @@ SELECT
     p.id AS property_id,           -- Property identifier
     p.title AS property_name,      -- Property name/title
     COUNT(b.id) AS total_bookings, -- Total number of times this property was booked
-    RANK() OVER (ORDER BY COUNT(b.id) DESC) AS booking_rank -- Rank: 1 = most booked
+    ROW_NUMBER() OVER (ORDER BY COUNT(b.id) DESC) AS booking_rank -- Row number: 1 = most booked
 FROM properties p
 LEFT JOIN bookings b ON p.id = b.property_id -- Include properties even if no bookings
 GROUP BY p.id, p.title;                      -- Group per property
